@@ -48,12 +48,6 @@ async function main() {
       new TokenAmount(WTLOS, ethers.utils.parseEther("2").toBigInt())
     )
 
-    console.log(`
-      ${tAmount[0].toSignificant(10)}
-    `)
-    
-   const elkBalanceOfStakingContract = await elkContract.balanceOf(STAKING_ADDRESS)
-
     const lpTotalSupply = await erc20PairContract.totalSupply()
     
     const stakingContractBalance = await erc20PairContract.balanceOf(STAKING_ADDRESS)
@@ -71,29 +65,34 @@ async function main() {
       new TokenAmount(pair.liquidityToken, BigNumber.from(stakingContractBalance).toBigInt()),
       false
     )
+    
+    const token1Price = utils.parseEther(pair.token1Price.toSignificant(5))
+    const token0Price = utils.parseEther(pair.token0Price.toSignificant(5))
+    const tlosAmount = BigNumber.from(tokenAmm.raw.toString()).mul("2")
 
-    const zAmount = pair.getOutputAmount(
-      new TokenAmount(ELKToken, elkTokenValue.raw)
-    )
+    let part1 = utils.parseEther("200").mul(token1Price).mul(_1e18)
+    let part2 = tlosAmount.mul(token0Price)
 
-    const doubleBall = pair.getOutputAmount(
-      new TokenAmount(ELKToken, BigNumber.from(elkBalanceOfStakingContract).toBigInt())
-    )
+    let apr = part1.div(part2).mul("365")
+
+                        apr = apr.mul(token0Price).mul("100").div(_1e18)
 
     console.log(`
-    ${utils.formatEther(elkBalanceOfStakingContract)}
+        ${token0Price.toString()}
+        ${token1Price.toString()}
 
-     WTLOS Amount in Staking Contract: ${tokenAmm.toSignificant(6)}
+        WTLOS Amount: ${utils.formatEther(tlosAmount)}
+        ${pair.token1Price.toFixed()}
+        ELK Amount: ${elkTokenValue.toSignificant(6)}
 
-     ELK Amount in Staking Contract: ${elkTokenValue.toSignificant(6)}
 
-     ELK Amount in Staking Contract converted to WTLOS: ${zAmount[0].toSignificant(6)}
-
-     another amount: ${doubleBall[0].toSignificant(5)}
+        apr: ${utils.formatEther(apr)}
     `)
 
 }
-
+// 2*99507=199014 + 75150=274164
+// 2 * 99507 = 199014
+// 2 * 54506=109012
 
 main()
 /*
